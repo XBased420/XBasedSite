@@ -1,0 +1,15 @@
+{
+  "name": "xbased-site",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "test": "node --test scripts/*.test.mjs",
+    "preview:portable": "node scripts/preview.mjs",
+    "check:launch": "node scripts/check-launch.mjs"
+  },
+  "dependencies": { "astro": "7.3.2" },
+  "engines": { "node": ">=22.12.0" }
+}

@@ -1,0 +1,19 @@
+import settings from '../site.config.mjs';
+import { projects } from '../src/content.mjs';
+import { existsSync } from 'node:fs';
+const missing = [];
+if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(settings.endpoint)) missing.push('Apps Script /exec URL');
+if (!settings.turnstileSiteKey || settings.turnstileSiteKey.startsWith('1x000') || settings.turnstileSiteKey.startsWith('2x000')) missing.push('production Turnstile site key');
+if (!settings.analyticsToken) missing.push('Cloudflare Web Analytics token');
+if (!settings.pricesApproved || Object.values(settings.prices).some(p => typeof p !== 'number' || !Number.isFinite(p) || p < 0) || settings.prices.deposit > 100) missing.push('approved valid price card');
+if (!settings.processApproved || [settings.buildTiming, settings.reviewTiming].some(s => !s || s.includes('[[NEEDS'))) missing.push('approved process timings');
+for (const project of projects) {
+  if (!project.screenshot || !existsSync(new URL('../public/' + project.screenshot, import.meta.url))) missing.push(`screenshot — ${project.name}`);
+  if (project.stackPending || !project.stack.length) missing.push(`confirmed stack — ${project.name}`);
+}
+if (settings.customDomain && !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(settings.customDomain)) missing.push('valid custom domain hostname');
+if (missing.length) {
+  console.log('FILL THESE IN\n' + missing.map(item => `- [[NEEDS XAVIER: ${item}]]`).join('\n'));
+  if (settings.launchReady || process.argv.includes('--strict')) process.exitCode = 1;
+  else console.log('Draft mode: Astro can build, but deployment is held until launchReady is true.');
+} else console.log(settings.launchReady ? 'Launch configuration complete.' : 'Ready for final review; set launchReady to true to deploy.');
