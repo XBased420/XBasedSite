@@ -16,11 +16,11 @@ test('custom domain and profile-repository deploy without base path', () => {
   assert.equal(deployment(settings, 'XBased420/XBased420.github.io').base, '/');
 });
 test('draft cannot pretend booking is connected, and contains no unobfuscated email', () => {
-  const html = renderPage({ settings, ...deployment(settings) });
+  const html = renderPage({ settings: { ...settings, endpoint: '' }, ...deployment(settings) });
   assert.match(html, /Preview mode/); assert.ok(!html.includes('calipxj@gmail.com'));
   assert.equal((html.match(/<details class="project/g) || []).length, 4);
   assert.equal((html.match(/<article class="service/g) || []).length, 8);
-  assert.ok(!html.includes('tel:')); assert.match(html, /\$100/); assert.match(html, /50%/);
+  assert.ok(!html.includes('tel:')); assert.match(html, /\$450/); assert.match(html, /50%/);
 });
 test('all input fields have labels and six are required', () => {
   const html = renderPage({ settings, ...deployment(settings) });
@@ -30,4 +30,13 @@ test('all input fields have labels and six are required', () => {
 test('fonts are genuine WOFF2 and styles honor reduced motion', () => {
   for (const name of ['manrope', 'space-grotesk']) assert.equal(readFileSync(new URL(`../public/assets/fonts/${name}-latin.woff2`, import.meta.url)).subarray(0, 4).toString(), 'wOF2');
   assert.match(readFileSync(new URL('../public/styles.css', import.meta.url), 'utf8'), /prefers-reduced-motion:reduce/);
+});
+
+test('connected form needs only endpoint and renders exactly configured budgets', () => {
+  const html = renderPage({ settings: { ...settings, endpoint: 'https://script.google.com/macros/s/example/exec' }, ...deployment(settings) });
+  assert.ok(!html.includes('Preview mode'));
+  const choices = [...html.match(/<select id="budget"[\s\S]*?<\/select>/)[0].matchAll(/<option>(.*?)<\/option>/g)].map(m => m[1]);
+  assert.deepEqual(choices, settings.budgets);
+  assert.ok(!/turnstile|cloudflare/i.test(html));
+  assert.match(html, /email you after I approve it/);
 });

@@ -1,14 +1,13 @@
-// Public settings only. Turnstile SECRET belongs in Apps Script Properties.
+// Public website settings. SHEET_ID belongs in Apps Script Properties.
 export default {
   brand: 'XBased',
   customDomain: '',
-  repository: 'xbased-site',
+  repository: 'XBasedSite',
   owner: 'XBased420',
-  endpoint: '',
-  turnstileSiteKey: '',
-  analyticsToken: '',
+  endpoint: 'https://script.google.com/macros/s/AKfycbyAwfOfFmh3bZZ609TDgqd3yoiFWtreA59uA7iNb5Im2lvYqObRvtE52qDUnCDrt49i/exec',
   pricesApproved: true,
-  prices: { onePage: 100, multiPage: 500, booking: 200, maintenance: 100, deposit: 50 },
+  prices: { onePage: 450, multiPage: 1200, booking: 600, maintenance: 125, deposit: 50 },
+  budgets: ['Around $450 — a simple site', '$600–$1,199', '$1,200–$2,499', '$2,500+', 'Not sure yet — tell me what it should cost'],
   processApproved: false,
   buildTiming: '[[NEEDS XAVIER: typical build time after content and deposit]]',
   reviewTiming: '[[NEEDS XAVIER: review and launch time]]',

@@ -9,9 +9,8 @@
   const success = document.getElementById('form-success');
   const button = form.querySelector('button[type=submit]');
   const originalButton = button.innerHTML;
-  let token = '', widgetId, busy = false;
-  const ready = Boolean(config.endpoint && config.turnstileSiteKey);
-  const resetChallenge = () => { token = ''; if (widgetId !== undefined && window.turnstile) window.turnstile.reset(widgetId); };
+  let busy = false;
+  const ready = Boolean(config.endpoint);
   const fail = message => {
     error.replaceChildren(document.createTextNode(`${message} `));
     const a = document.createElement('a'); a.href = `mailto:${email}`; a.textContent = 'Email Xavier instead.'; error.append(a); error.hidden = false;
@@ -39,7 +38,7 @@
     try {
       Promise.resolve(document.modelContext.registerTool({
         name: 'stage_project_request', title: 'Prepare a project request',
-        description: 'Fill the visible request form for the visitor to review. Does not send data; the visitor completes spam protection and presses Send.',
+        description: 'Fill the visible request form for the visitor to review. Does not send data; the visitor reviews the fields and presses Send.',
         inputSchema: { type: 'object', properties, additionalProperties: false },
         annotations: { readOnlyHint: false, untrustedContentHint: false },
         execute(input) {
@@ -53,7 +52,7 @@
           for (const [name, value] of Object.entries(input)) fields.find(f => f.name === name).value = value;
           document.getElementById('booking').scrollIntoView({ behavior: motion.matches ? 'instant' : 'smooth' });
           const allValid = fields.map(validate).every(Boolean);
-          return { staged: true, sent: false, fieldsValid: allValid, nextStep: 'Review the form, complete spam protection, and press Send.' };
+          return { staged: true, sent: false, fieldsValid: allValid, nextStep: 'Review the form and press Send.' };
         }
       }, { signal: lifecycle.signal })).catch(() => {});
     } catch { /* The optional interface must not affect the normal form. */ }
@@ -66,18 +65,6 @@
     if (digits.startsWith('1') && digits.length > 10) { prefix = '+1 '; digits = digits.slice(1); }
     phone.value = prefix + (digits.length > 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}` : digits.length > 3 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` : digits);
   });
-  if (ready) {
-    let loading = false;
-    const loadChallenge = () => {
-      if (loading) return; loading = true;
-      window.xbasedTurnstileReady = () => {
-        widgetId = window.turnstile.render('#turnstile', { sitekey: config.turnstileSiteKey, action: 'booking', theme: 'light', size: 'flexible', callback: value => { token = value; }, 'expired-callback': () => { token = ''; }, 'error-callback': () => { token = ''; fail('Spam protection couldn’t load. Please try again.'); }, 'timeout-callback': () => { token = ''; } });
-      };
-      const script = document.createElement('script'); script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=xbasedTurnstileReady&render=explicit'; script.async = true; script.defer = true; script.onerror = () => fail('Spam protection couldn’t load.'); document.head.append(script);
-    };
-    if ('IntersectionObserver' in window) { const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { loadChallenge(); observer.disconnect(); } }, { rootMargin: '500px' }); observer.observe(form); } else loadChallenge();
-    form.addEventListener('focusin', loadChallenge, { once: true });
-  }
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy) return;
@@ -85,18 +72,17 @@
     const results = fields.map(validate);
     if (results.some(valid => !valid)) { fields[results.indexOf(false)].focus(); return; }
     if (!ready) { fail('This preview isn’t connected to booking yet. Nothing was sent.'); return; }
-    if (!token) { fail('Please finish the spam check above, then send your request.'); return; }
     busy = true; button.disabled = true; button.textContent = 'Sending your request…'; form.setAttribute('aria-busy', 'true');
-    const payload = Object.fromEntries(new FormData(form).entries()); payload.turnstileToken = token;
+    const payload = Object.fromEntries(new FormData(form).entries());
     const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 25000);
     try {
       await fetch(config.endpoint, { method: 'POST', mode: 'no-cors', redirect: 'follow', credentials: 'omit', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), signal: controller.signal });
-      // Opaque response: delivery is unconfirmed until the auto-reply arrives.
+      // Opaque response: this indicates dispatch, not a saved row or owner approval.
       form.hidden = true; success.hidden = false; success.focus();
-    } catch { fail('I couldn’t confirm the send. Your details are still here. Check your inbox before trying again, or email me.'); }
-    finally { clearTimeout(timeout); busy = false; button.disabled = false; button.innerHTML = originalButton; form.removeAttribute('aria-busy'); resetChallenge(); }
+    } catch { fail('I couldn’t confirm the send. Your details are still here. Email me to check whether it arrived before trying again.'); }
+    finally { clearTimeout(timeout); busy = false; button.disabled = false; button.innerHTML = originalButton; form.removeAttribute('aria-busy'); }
   });
-  document.getElementById('send-another').addEventListener('click', () => { form.reset(); fields.forEach(f => { f.removeAttribute('aria-invalid'); document.getElementById(`${f.id}-error`).textContent = ''; }); error.hidden = true; success.hidden = true; form.hidden = false; resetChallenge(); fields[0].focus(); });
+  document.getElementById('send-another').addEventListener('click', () => { form.reset(); fields.forEach(f => { f.removeAttribute('aria-invalid'); document.getElementById(`${f.id}-error`).textContent = ''; }); error.hidden = true; success.hidden = true; form.hidden = false; fields[0].focus(); });
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const mark = document.querySelector('.type-mark');
   const hero = document.querySelector('.hero');
@@ -107,5 +93,4 @@
   });
   hero.addEventListener('pointerleave', () => { mark.style.transform = ''; });
   motion.addEventListener('change', () => { if (motion.matches) mark.style.transform = ''; });
-  if (config.analyticsToken) { const script = document.createElement('script'); script.defer = true; script.src = 'https://static.cloudflareinsights.com/beacon.min.js'; script.dataset.cfBeacon = JSON.stringify({ token: config.analyticsToken }); document.head.append(script); }
 })();
