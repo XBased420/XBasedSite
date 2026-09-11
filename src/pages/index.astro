@@ -1,0 +1,7 @@
+---
+import settings, { deployment } from '../../site.config.mjs';
+import { renderPage } from '../render.mjs';
+const location = deployment(settings);
+const html = renderPage({ settings, ...location });
+---
+<Fragment set:html={html} />

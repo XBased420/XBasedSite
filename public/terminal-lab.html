@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#11100d">
+  <title>XBased — Terminal redesign lab</title>
+  <link rel="preload" href="assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="terminal-lab.css">
+</head>
+<body>
+  <a class="skip-link" href="#concept-stage">Skip to concept</a>
+  <header class="lab-header">
+    <div>
+      <a class="lab-brand" href="./">x[based].</a>
+      <span class="lab-label">terminal redesign lab</span>
+    </div>
+    <div class="concept-tabs" role="tablist" aria-label="Design concepts">
+      <button id="tab-a" class="concept-tab active" role="tab" aria-selected="true" aria-controls="concept-a" data-concept="a"><span>A</span>Civic console</button>
+      <button id="tab-b" class="concept-tab" role="tab" aria-selected="false" aria-controls="concept-b" data-concept="b"><span>B</span>Field relay</button>
+      <button id="tab-c" class="concept-tab" role="tab" aria-selected="false" aria-controls="concept-c" data-concept="c"><span>C</span>Contract uplink</button>
+    </div>
+  </header>
+
+  <main id="concept-stage" tabindex="-1">
+    <section class="concept concept-a" id="concept-a" role="tabpanel" aria-labelledby="tab-a">
+      <div class="machine-shell">
+        <div class="machine-stamp" aria-hidden="true">XB–77 / CIVIC INFORMATION SYSTEM</div>
+        <div class="screen crt">
+          <header class="system-bar">
+            <span>XBASED MUNICIPAL SERVICE TERMINAL</span>
+            <span class="status"><i></i> AVAILABLE FOR NEW WORK</span>
+            <span class="clock" data-clock>09:41:22</span>
+          </header>
+          <div class="console-grid">
+            <nav class="directory" aria-label="Concept A navigation">
+              <p>DIRECTORY</p>
+              <a class="active" href="#a-home">HOME</a>
+              <a href="#a-work">WORK RECORDS</a>
+              <a href="#a-services">SERVICES</a>
+              <a href="#a-rates">RATES</a>
+              <a href="#a-about">OPERATOR</a>
+              <a class="contract-link" href="#a-contract">NEW CONTRACT</a>
+              <div class="machine-readout">
+                <span>LOCAL NODE</span>
+                <strong>DFW–TX</strong>
+                <span>RESPONSE TIME</span>
+                <strong>&lt; 24 HOURS</strong>
+              </div>
+            </nav>
+            <div class="console-content">
+              <div id="a-home" class="a-hero">
+                <p class="boot-line" data-type="PERSONAL TERMINAL ONLINE // OPERATOR: XAVIER"></p>
+                <h1>Useful websites for people with real work to do.</h1>
+                <p class="lede">I build sites, booking systems, and practical automations for small businesses and creatives in DFW and beyond.</p>
+                <div class="prompt-line" aria-hidden="true"><span>&gt;</span><span>run start_project.exe</span><b></b></div>
+                <a class="terminal-button" href="#a-contract">Open project request</a>
+              </div>
+              <div id="a-work" class="records-row">
+                <p class="row-label">RECENT RECORDS</p>
+                <article><span>01 / BOOKING SITE</span><h2>Elizabeth Loya</h2><p>One place for services, availability, and booking requests.</p><b>IN PROGRESS</b></article>
+                <article><span>02 / ARTIST SITE</span><h2>Payday AJ</h2><p>A digital home built around the artist, not a generic template.</p><b class="online">LIVE</b></article>
+              </div>
+              <div class="utility-grid">
+                <div id="a-services"><p class="row-label">SERVICE DIRECTORY</p><p>One-page and multi-page sites</p><p>Booking systems</p><p>AI tools and automations</p><p>Maintenance and setup</p></div>
+                <div id="a-rates"><p class="row-label">STARTING RATES</p><p><span>One-page site</span><b>$450</b></p><p><span>Full site</span><b>$1,200</b></p><p><span>Booking add-on</span><b>$600</b></p><p><span>Maintenance</span><b>$125/mo</b></p></div>
+              </div>
+              <div id="a-contract" class="contract-panel">
+                <div><p class="row-label">NEW CONTRACT / INTAKE 01</p><h2>What should we put online?</h2><p>Rough ideas are fine. This opens a conversation, not a commitment.</p></div>
+                <form class="concept-form" data-demo-form>
+                  <label for="a-name">Your name</label><input id="a-name" name="name" autocomplete="name" required>
+                  <label for="a-need">What do you need?</label><textarea id="a-need" name="need" rows="3" required></textarea>
+                  <button class="terminal-button" type="submit">Continue request</button>
+                  <p class="demo-message" role="status"></p>
+                </form>
+              </div>
+              <p id="a-about" class="operator-note">OPERATOR NOTE: self-taught builder; restaurant-floor perspective; no agency handoff.</p>
+            </div>
+          </div>
+        </div>
+        <div class="hardware-row" aria-hidden="true"><span>POWER</span><i></i><span>DATA</span><i></i><b>PROPERTY OF XBASED FIELD SERVICES</b></div>
+      </div>
+    </section>
+
+    <section class="concept concept-b" id="concept-b" role="tabpanel" aria-labelledby="tab-b" hidden>
+      <div class="relay-shell">
+        <header class="relay-head">
+          <div class="relay-id">XBASED<br><span>FIELD RELAY</span></div>
+          <div><small>SIGNAL</small><strong>88.7</strong></div>
+          <div><small>REGION</small><strong>DFW</strong></div>
+          <div><small>CHANNEL</small><strong>OPEN</strong></div>
+        </header>
+        <div class="relay-screen crt">
+          <section class="relay-intro">
+            <p class="relay-kicker">INDEPENDENT WEB SYSTEMS / TRANSMISSION 0042</p>
+            <h1>Built from the problems people actually have.</h1>
+            <p>Xavier builds websites and booking tools for businesses, artists, and anyone tired of running the whole operation through DMs.</p>
+            <a class="relay-button" href="#relay-form">Transmit a brief</a>
+            <div class="signal-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </section>
+          <section class="dossier">
+            <div class="dossier-head"><span>OPEN DOSSIER</span><span>REC 01–04</span></div>
+            <p class="stamp">IN PROGRESS</p>
+            <h2>Elizabeth Loya</h2>
+            <h3>Booking site / Dallas</h3>
+            <dl><div><dt>THE PROBLEM</dt><dd>Booking details were scattered across conversations.</dd></div><div><dt>THE BUILD</dt><dd>Services, availability, and a request flow tied to a private data source.</dd></div><div><dt>TOOLS</dt><dd>Astro / Google Sheets / static hosting</dd></div></dl>
+            <nav aria-label="Project dossier"><button type="button" data-dossier="0" class="selected">01</button><button type="button" data-dossier="1">02</button><button type="button" data-dossier="2">03</button><button type="button" data-dossier="3">04</button></nav>
+          </section>
+          <section class="relay-strip">
+            <div><span>SERVICES</span><p>Sites / booking / automation / upkeep</p></div>
+            <div><span>ENTRY RATE</span><p>$450 one-page / 50% deposit</p></div>
+            <div><span>REPLY WINDOW</span><p>Within 24 hours</p></div>
+          </section>
+          <section id="relay-form" class="relay-form">
+            <div><p>CHANNEL / NEW REQUEST</p><h2>Send the useful part first.</h2></div>
+            <form data-demo-form><label for="b-need">What are you trying to make?</label><textarea id="b-need" required rows="3"></textarea><button class="relay-button" type="submit">Stage transmission</button><p class="demo-message" role="status"></p></form>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="concept concept-c" id="concept-c" role="tabpanel" aria-labelledby="tab-c" hidden>
+      <div class="uplink-shell">
+        <header class="uplink-head"><a href="#">XBASED/UPLINK</a><span>SECURE INTAKE CHANNEL</span><span class="status"><i></i> XAVIER IS TAKING NEW WORK</span></header>
+        <div class="uplink-screen crt">
+          <aside>
+            <p>REQUEST TRACE</p>
+            <ol>
+              <li class="active"><span>01</span>Need</li>
+              <li><span>02</span>Project</li>
+              <li><span>03</span>Budget</li>
+              <li><span>04</span>Contact</li>
+            </ol>
+            <div><button type="button" data-uplink-info="work">VIEW WORK</button><button type="button" data-uplink-info="rates">VIEW RATES</button><button type="button" data-uplink-info="about">ABOUT XAVIER</button></div>
+          </aside>
+          <section class="uplink-dialog">
+            <p class="system-copy">Connection established. I’ll ask four short questions, then you can review everything before anything is sent.</p>
+            <form id="uplink-form">
+              <div class="uplink-step active" data-step="0"><label for="c-need">What are you trying to put online?</label><textarea id="c-need" rows="3" placeholder="A booking site for my barber shop…" required></textarea></div>
+              <div class="uplink-step" data-step="1"><label for="c-type">Which build feels closest?</label><select id="c-type"><option>One-page site</option><option>Full website</option><option>Booking system</option><option>Not sure yet</option></select></div>
+              <div class="uplink-step" data-step="2"><label for="c-budget">What budget feels comfortable?</label><select id="c-budget"><option>$500–$1,000</option><option>$1,000–$2,500</option><option>$2,500+</option><option>Not sure yet</option></select></div>
+              <div class="uplink-step" data-step="3"><label for="c-email">Where should Xavier reply?</label><input id="c-email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+              <div class="uplink-actions"><button class="uplink-back" type="button" hidden>Back</button><button class="uplink-next" type="submit">Continue</button></div>
+              <p class="uplink-counter">QUESTION <b>01</b> / 04</p>
+              <p class="demo-message" role="status"></p>
+            </form>
+            <div class="cursor-row" aria-hidden="true"><span>&gt;</span><i></i></div>
+          </section>
+          <section class="info-drawer" aria-live="polite" hidden><button type="button" aria-label="Close information">×</button><div></div></section>
+        </div>
+        <footer><span>NO COMMITMENT UNTIL SCOPE + PRICE ARE AGREED</span><span>DFW / REMOTE</span></footer>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lab-footer"><p>Three structural directions. Prototype forms do not send data.</p><span>Design notes: docs/TERMINAL-REDESIGN.md</span></footer>
+  <script src="terminal-lab.js"></script>
+</body>
+</html>
