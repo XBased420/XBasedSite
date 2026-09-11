@@ -77,9 +77,9 @@ In Cloudflare, open **Web Analytics → Add a site** and enter the hostname you 
 1. Reconnect the GitHub CLI with `gh auth login -h github.com` if using terminal publishing, or sign in through GitHub’s website. Do not paste your token into this project or chat.
 2. Create an empty public repository under **XBased420**. `xbased-site` is a suggested name, not an existing verified URL. Copy the contents of this project to the repository root, including `.github/`, the lockfile, public font licenses, and all source. Do not upload the outer ZIP as the site.
 3. In the repository, go to **Settings → Pages → Build and deployment → Source → GitHub Actions**.
-4. Push to `main`. The workflow runs the Node tests, checks launch configuration, then uses `withastro/action@v6` with Node 24 and locked pnpm 11.19.0 to build Astro on Linux. It uploads the Pages artifact. No local Astro command is needed.
-5. While `launchReady` is false, the build job still runs and the deploy job is intentionally skipped. Download the build artifact from Actions if you need to inspect that first actual Astro build. This is the remote compiler check still outstanding at handoff.
-6. After the remaining content and configuration are complete, set `launchReady: true`, commit, and push. Missing required configuration now fails the workflow instead of publishing an unfinished site. The deploy job uses `actions/deploy-pages@v5`; follow the actual URL shown by GitHub after it succeeds.
+4. Push to `main`. The workflow runs the Node tests, reports launch configuration, then uses `withastro/action@v3` with Node 22 to build Astro on Linux. It uploads the Pages artifact and deploys it with `actions/deploy-pages@v4`. No local Astro command is needed.
+5. While `launchReady` is false, the terminal may publish but booking remains visibly marked preview-only until the endpoint and production Turnstile key are both configured.
+6. After the remaining content and configuration are complete, set `launchReady: true`, commit, and push. Missing required configuration then fails the workflow instead of publishing a build that claims to be launch-ready.
 
 For terminal setup in this site folder (after GitHub authentication), initialize a repository only here:
 

@@ -15,5 +15,5 @@ if (settings.customDomain && !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(settings.customDom
 if (missing.length) {
   console.log('FILL THESE IN\n' + missing.map(item => `- [[NEEDS XAVIER: ${item}]]`).join('\n'));
   if (settings.launchReady || process.argv.includes('--strict')) process.exitCode = 1;
-  else console.log('Draft mode: Astro can build, but deployment is held until launchReady is true.');
+  else console.log('Draft mode: the site may publish, but booking stays visibly preview-only until production configuration is complete.');
 } else console.log(settings.launchReady ? 'Launch configuration complete.' : 'Ready for final review; set launchReady to true to deploy.');

@@ -20,7 +20,7 @@ been promoted into the production renderer. The rationale and token systems are 
 
 ## Publish or redeploy
 
-Complete [the launch guide](docs/LAUNCH.md) once. Then edit, commit, and push to `main`; GitHub Actions installs the locked dependencies, builds Astro on Linux, and deploys to Pages. Do not run `npm run dev` or the Astro compiler on this Windows machine. `launchReady: false` currently allows CI builds but holds public deployment; set it to `true` after the launch checklist passes. The workflow then checks required configuration before deploying.
+Complete [the launch guide](docs/LAUNCH.md) once. Then edit, commit, and push to `main`; GitHub Actions installs the locked dependencies, builds Astro on Linux, and deploys to Pages. Do not run `npm run dev` or the Astro compiler on this Windows machine. With `launchReady: false`, the terminal can publish but clearly labels booking as preview-only and the workflow reports remaining setup. Set it to `true` only after the launch checklist passes; missing required configuration then fails the build.
 
 The provisional repository name is `xbased-site`. CI automatically uses the real repository name for the base path. No custom domain is configured yet. Set `customDomain: 'xbased.dev'` only once you own it and complete DNS setup.
 
