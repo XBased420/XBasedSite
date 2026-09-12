@@ -5,7 +5,7 @@ export default {
   repository: 'XBasedSite',
   owner: 'XBased420',
   endpoint: 'https://script.google.com/macros/s/AKfycbyAwfOfFmh3bZZ609TDgqd3yoiFWtreA59uA7iNb5Im2lvYqObRvtE52qDUnCDrt49i/exec',
-  bookingEnabled: false,
+  bookingEnabled: true,
   analyticsToken: '',
   pricesApproved: true,
   prices: { onePage: 450, multiPage: 1200, booking: 600, maintenance: 125, deposit: 50 },
