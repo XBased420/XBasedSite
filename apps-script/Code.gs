@@ -31,9 +31,9 @@ function normalizeLead(data) {
 // Keep user content literal when Sheets interprets formula-leading characters.
 function sheetText(value) { return /^[\s]*[=+\-@]/.test(value) ? "'" + value : value; }
 function subjectText(value) { return value.replace(/[\r\n\t]+/g, ' ').slice(0, 80); }
-function leadHash(lead) {
-  return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(lead))).replace(/=+$/, '');
-}
+function hashText(value) { return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, value)).replace(/=+$/, ''); }
+function leadHash(lead) { return hashText(JSON.stringify(lead)); }
+function senderHash(lead) { return hashText(lead.email.toLowerCase() + '|' + lead.phone.replace(/\D/g, '')); }
 function getLeadsSheet(properties) {
   var id = properties.getProperty('SHEET_ID');
   if (!id) throw new Error('missing_sheet');
@@ -69,32 +69,25 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     if (!data || typeof data !== 'object' || Array.isArray(data)) return rejectRequest();
     if (data.website) return rejectRequest();
-    // Heuristic only: clients can forge elapsed time. Turnstile remains mandatory.
+    // Heuristic only: clients can forge elapsed time, so it is layered with the honeypot,
+    // strict validation, duplicate suppression, and a short per-sender cooldown below.
     if (typeof data.elapsedSeconds !== 'number' || !isFinite(data.elapsedSeconds) || data.elapsedSeconds < 3) return rejectRequest();
     var lead = normalizeLead(data);
-    var token = cleanText(data, 'turnstileToken', 2048, true);
     var props = PropertiesService.getScriptProperties();
-    var secret = props.getProperty('TURNSTILE_SECRET');
-    var hostnames = (props.getProperty('ALLOWED_HOSTNAMES') || '').split(',').map(function (h) { return h.trim().toLowerCase(); }).filter(Boolean);
-    if (!secret || !hostnames.length) throw new Error('missing_configuration');
-    // TURNSTILE: verify token here before writing the row (retained per Current State).
-    var verification = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'post', payload: { secret: secret, response: token }, muteHttpExceptions: true
-    });
-    if (verification.getResponseCode() !== 200) return rejectRequest();
-    var result = JSON.parse(verification.getContentText());
-    if (!result.success || result.action !== 'booking' || hostnames.indexOf(String(result.hostname || '').toLowerCase()) < 0) return rejectRequest();
     lock = LockService.getScriptLock();
     locked = lock.tryLock(10000);
     if (!locked) throw new Error('busy');
     var cache = CacheService.getScriptCache();
     var fingerprint = 'lead:' + leadHash(lead);
     if (cache.get(fingerprint)) return jsonResponse({ ok: true, duplicate: true });
+    var senderKey = 'sender:' + senderHash(lead);
+    if (cache.get(senderKey)) return jsonResponse({ ok: true, throttled: true });
     var sheet = getLeadsSheet(props);
     var values = [lead.name, lead.email, lead.phone, lead.business, lead.type, lead.hasSite, lead.needs, lead.budget, lead.timeline, lead.socials, lead.source].map(sheetText);
     sheet.appendRow([new Date()].concat(values, ['', '', '']));
     SpreadsheetApp.flush();
     cache.put(fingerprint, 'saved', 600);
+    cache.put(senderKey, 'saved', 60);
     // Row is durable before email. Status and Notes remain Xavier's manual fields.
     var notificationSent = false, autoReplySent = false;
     if (MailApp.getRemainingDailyQuota() >= 2) {

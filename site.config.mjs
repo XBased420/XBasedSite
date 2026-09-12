@@ -1,11 +1,11 @@
-// Public settings only. Turnstile SECRET belongs in Apps Script Properties.
+// Public website settings. SHEET_ID belongs in private Apps Script Properties.
 export default {
   brand: 'x[based].',
   customDomain: '',
   repository: 'XBasedSite',
   owner: 'XBased420',
   endpoint: 'https://script.google.com/macros/s/AKfycbyAwfOfFmh3bZZ609TDgqd3yoiFWtreA59uA7iNb5Im2lvYqObRvtE52qDUnCDrt49i/exec',
-  turnstileSiteKey: '',
+  bookingEnabled: false,
   analyticsToken: '',
   pricesApproved: true,
   prices: { onePage: 450, multiPage: 1200, booking: 600, maintenance: 125, deposit: 50 },

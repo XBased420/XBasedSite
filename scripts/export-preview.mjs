@@ -10,7 +10,7 @@ for (const name of ['manrope', 'space-grotesk']) {
 }
 const js = await readFile(publicFile('site.js'), 'utf8');
 const favicon = await readFile(publicFile('favicon.svg'));
-let html = renderPage({ settings: { ...settings, endpoint: '', turnstileSiteKey: '', analyticsToken: '', launchReady: false }, site: 'https://xbased420.github.io', base: '/' });
+let html = renderPage({ settings: { ...settings, endpoint: '', analyticsToken: '', launchReady: false }, site: 'https://xbased420.github.io', base: '/' });
 html = html.replace('<link rel="stylesheet" href="/styles.css">', `<style>${css}</style>`)
   .replace('<script defer src="/site.js"></script>', `<script>${js.replace(/<\/script/gi, '<\\/script')}</script>`)
   .replace('href="/favicon.svg"', `href="data:image/svg+xml;base64,${favicon.toString('base64')}"`)

@@ -222,14 +222,8 @@
   const success = document.getElementById('form-success');
   const submitButton = form.querySelector('button[type=submit]');
   const originalButton = submitButton.innerHTML;
-  let token = '';
-  let widgetId;
   let busy = false;
-  const ready = Boolean(config.endpoint && config.turnstileSiteKey);
-  const resetChallenge = () => {
-    token = '';
-    if (widgetId !== undefined && window.turnstile) window.turnstile.reset(widgetId);
-  };
+  const ready = Boolean(config.endpoint && config.bookingEnabled);
   const fail = message => {
     error.replaceChildren(document.createTextNode(`${message} `));
     const link = document.createElement('a');
@@ -331,7 +325,7 @@
       Promise.resolve(document.modelContext.registerTool({
         name: 'stage_project_request',
         title: 'Prepare a project request',
-        description: 'Fill the visible request form for the visitor to review. Does not send data; the visitor completes spam protection and presses Send.',
+        description: 'Fill the visible request form for the visitor to review. Does not send data; the visitor presses Send after reviewing it.',
         inputSchema: { type: 'object', properties, additionalProperties: false },
         annotations: { readOnlyHint: false, untrustedContentHint: false },
         execute(input) {
@@ -345,7 +339,7 @@
           for (const [name, value] of Object.entries(input)) fields.find(field => field.name === name).value = value;
           document.getElementById('booking').scrollIntoView({ behavior: motion.matches ? 'instant' : 'smooth' });
           const allValid = fields.map(validate).every(Boolean);
-          return { staged: true, sent: false, fieldsValid: allValid, nextStep: 'Review the form, complete spam protection, and press Send.' };
+          return { staged: true, sent: false, fieldsValid: allValid, nextStep: 'Review the form and press Send.' };
         }
       }, { signal: lifecycle.signal })).catch(() => {});
     } catch { /* The optional interface must not affect the normal form. */ }
@@ -364,42 +358,6 @@
     phone.value = prefix + (digits.length > 6 ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}` : digits.length > 3 ? `(${digits.slice(0, 3)}) ${digits.slice(3)}` : digits);
   });
 
-  if (ready) {
-    let loading = false;
-    const loadChallenge = () => {
-      if (loading) return;
-      loading = true;
-      window.xbasedTurnstileReady = () => {
-        widgetId = window.turnstile.render('#turnstile', {
-          sitekey: config.turnstileSiteKey,
-          action: 'booking',
-          theme: 'dark',
-          size: 'flexible',
-          callback: value => { token = value; },
-          'expired-callback': () => { token = ''; },
-          'error-callback': () => { token = ''; fail('Spam protection couldn’t load. Please try again.'); },
-          'timeout-callback': () => { token = ''; }
-        });
-      };
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=xbasedTurnstileReady&render=explicit';
-      script.async = true;
-      script.defer = true;
-      script.onerror = () => fail('Spam protection couldn’t load.');
-      document.head.append(script);
-    };
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) {
-          loadChallenge();
-          observer.disconnect();
-        }
-      }, { rootMargin: '500px' });
-      observer.observe(form);
-    } else loadChallenge();
-    form.addEventListener('focusin', loadChallenge, { once: true });
-  }
-
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy) return;
@@ -413,16 +371,11 @@
       fail('This preview isn’t connected to booking yet. Nothing was sent.');
       return;
     }
-    if (!token) {
-      fail('Please finish the spam check above, then send your request.');
-      return;
-    }
     busy = true;
     submitButton.disabled = true;
     submitButton.textContent = 'Sending your request…';
     form.setAttribute('aria-busy', 'true');
     const payload = Object.fromEntries(new FormData(form).entries());
-    payload.turnstileToken = token;
     payload.elapsedSeconds = Math.max(0, (performance.now() - formRenderedAt) / 1000);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000);
@@ -439,7 +392,6 @@
       submitButton.disabled = false;
       submitButton.innerHTML = originalButton;
       form.removeAttribute('aria-busy');
-      resetChallenge();
     }
   });
 
@@ -453,7 +405,6 @@
     error.hidden = true;
     success.hidden = true;
     form.hidden = false;
-    resetChallenge();
     fields[0].focus();
   });
 

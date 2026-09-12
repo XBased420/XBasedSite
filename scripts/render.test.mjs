@@ -15,8 +15,8 @@ test('custom domain and profile-repository deploy without base path', () => {
   assert.deepEqual(deployment({ ...settings, customDomain: 'xbased.dev' }), { site: 'https://xbased.dev', base: '/' });
   assert.equal(deployment(settings, 'XBased420/XBased420.github.io').base, '/');
 });
-test('draft cannot pretend booking is connected, and contains no unobfuscated email', () => {
-  const html = renderPage({ settings, ...deployment(settings) });
+test('missing endpoint stays preview-only, and contains no unobfuscated email', () => {
+  const html = renderPage({ settings: { ...settings, endpoint: '' }, ...deployment(settings) });
   assert.match(html, /Preview mode/i); assert.ok(!html.includes('calipxj@gmail.com'));
   assert.equal((html.match(/<details class="project/g) || []).length, 4);
   assert.equal((html.match(/data-estimate-option/g) || []).length, 8);
@@ -24,6 +24,14 @@ test('draft cannot pretend booking is connected, and contains no unobfuscated em
   assert.match(html, /data-one-time="450"/);
   assert.match(html, /data-deposit="50"/);
   assert.doesNotMatch(html, /class="pricing"/);
+});
+test('configured endpoint enables booking without loading a challenge widget', () => {
+  const html = renderPage({ settings: { ...settings, bookingEnabled: true }, ...deployment(settings) });
+  const behavior = readFileSync(new URL('../public/site.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(html, /Preview mode/i);
+  assert.doesNotMatch(html, /turnstile|Spam protection/i);
+  assert.match(behavior, /const ready = Boolean\(config\.endpoint && config\.bookingEnabled\)/);
+  assert.doesNotMatch(behavior, /turnstile|challenges\.cloudflare\.com/i);
 });
 test('all input fields have labels and six are required', () => {
   const html = renderPage({ settings, ...deployment(settings) });

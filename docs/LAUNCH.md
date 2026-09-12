@@ -1,18 +1,18 @@
 # XBased launch guide
 
-Prepared September 9, 2026. The website implementation and backend source are supplied. GitHub publishing and real Google/Cloudflare delivery have not been run. The GitHub CLI reported an expired sign-in. Prices are Xavier’s approved starting figures; future research does not automatically change them.
+The website publishes from the `main` branch to GitHub Pages. The booking form posts to Xavier’s existing Google Apps Script web app. Changes to `apps-script/Code.gs` must still be copied into Apps Script and released as a new deployment version before the live receiver changes.
 
 ## 1. Connect the booking backend
 
 1. Sign into Google **as calipxj@gmail.com**. Create the Sheet and Apps Script while using that account. MailApp sends as the account that owns/runs the script; setting `replyTo` does not change the sender account.
-2. Create a private Google Sheet. Do not publish or share it publicly. Copy the Sheet ID from its URL.
-3. Open **Extensions → Apps Script**. Replace `Code.gs` with the supplied complete file.
-4. In **Project Settings → Script Properties**, add `SHEET_ID`, `TURNSTILE_SECRET`, and `ALLOWED_HOSTNAMES`. Put secrets here, never in source or a screenshot. `ALLOWED_HOSTNAMES` is a comma-separated list, initially `xbased420.github.io`; add `xbased.dev,www.xbased.dev` once those domains are in use. Values are hostnames, with no protocol or path.
-5. In the Cloudflare dashboard, open **Turnstile → Add widget**. Choose Managed and add the hostname(s) the site will actually use. Put the public site key in `site.config.mjs` as `turnstileSiteKey`; put the secret in the script property above. Keep Turnstile hostname validation enabled. Do not use Cloudflare’s test keys for launch.
-6. Optionally enable **Show appsscript.json manifest file** in Project Settings and use the supplied manifest. It declares the Sheet, URL fetch, and mail permissions, with America/Chicago time.
-7. Select `setupLeads` in the function menu and run it once. Approve Google’s authorization prompts after checking that this is your own script. This creates the `Leads` tab/header if empty and checks an existing header without erasing records.
-8. Choose **Deploy → New deployment → Web app**. Set **Execute as: Me** and **Who has access: Anyone**. Authorize the deployment with the same Gmail account. Copy the `/exec` URL, not the editor URL or `/dev` URL, to `endpoint` in `site.config.mjs`.
-9. When the script changes, use **Deploy → Manage deployments → Edit → New version → Deploy** to preserve the endpoint URL. If you create a different deployment, update the website endpoint too.
+2. Open the existing private **XBased — Project requests** Sheet. If it no longer exists, create a private Google Sheet. Do not publish or share it publicly.
+3. Open **Extensions → Apps Script** from that Sheet. Replace `Code.gs` with the complete contents of `apps-script/Code.gs` from this repository.
+4. In **Project Settings → Script Properties**, keep or add only `SHEET_ID`, using the ID between `/d/` and `/edit` in the Sheet URL. The site no longer uses Turnstile or a Turnstile secret.
+5. Optionally enable **Show appsscript.json manifest file** in Project Settings and use the supplied manifest. It declares only the Sheet and mail permissions, with America/Chicago time.
+6. Select `setupLeads` in the function menu and run it once. Approve Google’s authorization prompts after checking that this is your own script. This creates the `Leads` tab/header if empty and checks an existing header without erasing records.
+7. For the existing web app, choose **Deploy → Manage deployments → Edit → New version → Deploy**. Keep **Execute as: Me** and **Who has access: Anyone**. Updating the existing deployment preserves the `/exec` URL already stored in `site.config.mjs`.
+8. If the old deployment cannot be edited, choose **Deploy → New deployment → Web app**, use the same access settings, and copy the new `/exec` URL into `endpoint` in `site.config.mjs` before pushing the site again.
+9. After the deployment succeeds, set `bookingEnabled: true` in `site.config.mjs`, commit, and push. This removes Preview Mode and lets the browser send requests to the receiver.
 
 The exact header, in order:
 
@@ -34,13 +34,13 @@ The exact header, in order:
 | N | Status |
 | O | Notes |
 
-File Link is blank because uploads are deferred. Status and Notes stay blank for you to fill by hand. The backend validates every submitted field, verifies the Turnstile hostname and action, rejects a filled honeypot, protects formula-leading spreadsheet text, and suppresses identical verified submissions for ten minutes using a best-effort cache. The cache can be evicted, so it is duplicate suppression rather than a payment-style exactly-once guarantee.
+File Link is blank because uploads are deferred. Status and Notes stay blank for you to fill by hand. The backend validates every submitted field, rejects a filled honeypot and unrealistically fast submissions, protects formula-leading spreadsheet text, suppresses identical submissions for ten minutes, and applies a 60-second cooldown to the same email-and-phone combination. The Apps Script cache can be evicted, so these are practical spam controls rather than a guarantee against determined automated abuse.
 
 ### Why the browser request looks unusual
 
 The fetch uses `Content-Type: text/plain;charset=utf-8` and `mode: 'no-cors'` so JSON travels as a simple request without the CORS preflight that this Apps Script endpoint does not handle. The resulting response is opaque, so the website cannot read the returned JSON or confirm a saved row; it shows “on its way” and asks the visitor to check for the confirmation email.
 
-Do not turn an opaque response into “confirmed booking.” Nothing here books a time or takes a payment. A network error keeps entered details and shows a mailto fallback. With missing endpoint/key, the preview explicitly says nothing was sent.
+Do not turn an opaque response into “confirmed booking.” Nothing here books a time or takes a payment. A network error keeps entered details and shows a mailto fallback. With a missing endpoint, the preview explicitly says nothing was sent.
 
 ### Email behavior and quota
 
@@ -78,7 +78,7 @@ In Cloudflare, open **Web Analytics → Add a site** and enter the hostname you 
 2. Create an empty public repository under **XBased420**. `xbased-site` is a suggested name, not an existing verified URL. Copy the contents of this project to the repository root, including `.github/`, the lockfile, public font licenses, and all source. Do not upload the outer ZIP as the site.
 3. In the repository, go to **Settings → Pages → Build and deployment → Source → GitHub Actions**.
 4. Push to `main`. The workflow runs the Node tests, reports launch configuration, then uses `withastro/action@v3` with Node 22 to build Astro on Linux. It uploads the Pages artifact and deploys it with `actions/deploy-pages@v4`. No local Astro command is needed.
-5. While `launchReady` is false, the terminal may publish but booking remains visibly marked preview-only until the endpoint and production Turnstile key are both configured.
+5. Booking is active when the Apps Script `/exec` endpoint is configured and `bookingEnabled` is true. Keep the switch false until the matching Apps Script version is published. `launchReady` controls the broader launch checklist and search-engine visibility.
 6. After the remaining content and configuration are complete, set `launchReady: true`, commit, and push. Missing required configuration then fails the workflow instead of publishing a build that claims to be launch-ready.
 
 For terminal setup in this site folder (after GitHub authentication), initialize a repository only here:
@@ -135,25 +135,25 @@ Optional IPv6: four AAAA records at `@`: `2606:50c0:8000::153`, `2606:50c0:8001:
 
 ## 5. End-to-end test before announcing the site
 
-1. From the deployed GitHub Pages or custom-domain URL, submit a real request using an email account you can check. Solve the real Turnstile challenge. Choose “Not sure yet” as the budget to prove it is accepted normally.
+1. After publishing the new Apps Script version, open the deployed GitHub Pages URL and submit one real request using an email account you can check. Choose “Not sure yet” as the budget to prove it is accepted normally.
 2. Confirm exactly one new row appears in `Leads`; verify all fields and the blank File Link/Status/Notes columns.
 3. Confirm the owner notification arrives at Xavier’s Gmail and its subject includes all four triage fields. Hit Reply and check that the recipient is the submitter before sending anything.
 4. Confirm the submitter’s auto-reply arrives and its Reply-To is Xavier’s address. Check spam folders too.
-5. Test an otherwise valid request with `turnstileToken: ''` using a direct POST to `/exec`, and another with a nonempty honeypot. Both should return `{ "ok": false }` to a non-browser HTTP client and create **no row and no emails**. A no-cors browser fetch cannot read this rejection, by design.
-6. Test an expired/invalid token. Test the network-failure path with the network temporarily offline: the form must retain entered data and show an email fallback. Reconnect before further submissions.
-7. Check the six required fields, blur validation, phone formatting, case-study keyboard expansion, visible focus, email links, small screens, and 200% text zoom. Turn reduced motion on and confirm all content remains readable and usable.
-8. Run Lighthouse on the deployed production URL with a mobile profile: target **Performance ≥90, Accessibility ≥95**, and no observed layout shifts. These are targets, **not measured results from this handoff**. Check motion on a real mid-range Android; CSS capability support and device workload affect frame rate. Do not describe 60 fps as verified until measured.
-9. Confirm the domain/base-path variant, robots/sitemap, canonical URL, social title/description, and analytics events. Twitter uses a summary card; no fabricated project/brand image was added.
-10. Confirm the 24-hour response promise is one you can meet. Announce the site only after the real row and both emails have been observed.
+5. Wait at least 60 seconds before a second legitimate test from the same email and phone. The cooldown deliberately suppresses faster repeats even when the project description changes.
+6. Test the network-failure path with the network temporarily offline: the form must retain entered data and show an email fallback. Reconnect before further submissions.
+7. Run the repository tests; they verify honeypot rejection, minimum fill time, validation, duplicate suppression, sender cooldown, Sheet writes, and both email paths without touching the live Sheet.
+8. Check the six required fields, blur validation, phone formatting, case-study keyboard expansion, visible focus, email links, small screens, and 200% text zoom. Turn reduced motion on and confirm all content remains readable and usable.
+9. Run Lighthouse on the deployed production URL with a mobile profile: target **Performance ≥90, Accessibility ≥95**, and no observed layout shifts. These are targets, **not measured results from this handoff**.
+10. Confirm the 24-hour response promise is one you can meet. Announce the form only after the real row and both emails have been observed.
 
 File upload is intentionally cut under the brief’s allowed fallback: visitors are told to email files after submitting. No Drive permissions, base64 handling, or upload input is included.
 
 ## FILL THESE IN
 
 - [[NEEDS XAVIER: reconnect GitHub and create or select the destination repository]]
-- [[NEEDS XAVIER: Apps Script /exec URL]]
-- [[NEEDS XAVIER: production Turnstile site key]]
-- [[NEEDS XAVIER: Sheet ID and Turnstile secret — Apps Script Properties only]]
+- [[NEEDS XAVIER: publish the supplied Code.gs as a new version of the existing Apps Script web app]]
+- [[NEEDS XAVIER: confirm the existing Sheet ID in Apps Script Properties]]
+- [[NEEDS XAVIER: set bookingEnabled to true after the Apps Script update is live]]
 - [[NEEDS XAVIER: Cloudflare Web Analytics token]]
 - [[NEEDS XAVIER: typical build time after content and deposit]]
 - [[NEEDS XAVIER: review and launch time]]

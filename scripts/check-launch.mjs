@@ -3,7 +3,7 @@ import { projects } from '../src/content.mjs';
 import { existsSync } from 'node:fs';
 const missing = [];
 if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(settings.endpoint)) missing.push('Apps Script /exec URL');
-if (!settings.turnstileSiteKey || settings.turnstileSiteKey.startsWith('1x000') || settings.turnstileSiteKey.startsWith('2x000')) missing.push('production Turnstile site key');
+if (!settings.bookingEnabled) missing.push('booking enabled after publishing the current Apps Script version');
 if (!settings.analyticsToken) missing.push('Cloudflare Web Analytics token');
 if (!settings.pricesApproved || Object.values(settings.prices).some(p => typeof p !== 'number' || !Number.isFinite(p) || p < 0) || settings.prices.deposit > 100) missing.push('approved valid price card');
 if (!settings.processApproved || [settings.buildTiming, settings.reviewTiming].some(s => !s || s.includes('[[NEEDS'))) missing.push('approved process timings');
