@@ -81,9 +81,13 @@
     noiseClick(.045, .0045, .32, 3400, 'highpass');
   };
   const playPageOpen = () => {
-    tone(860, 310, .075, .0065, 0, 'square', 1500);
-    noiseClick(.035, .004, .018, 1250, 'bandpass');
-    tone(185, 690, .11, .0055, .075, 'sawtooth', 980, -9);
+    tone(860, 310, .075, .0081, 0, 'square', 1500);
+    noiseClick(.035, .005, .018, 1250, 'bandpass');
+    tone(185, 690, .11, .0069, .075, 'sawtooth', 980, -9);
+  };
+  const playEstimateTick = () => {
+    tone(1080, 680, .055, .0055, 0, 'square', 1800, 7);
+    noiseClick(.018, .0035, .012, 2400, 'highpass');
   };
   const playKeyTick = index => {
     const base = 720 + (index % 5) * 83;
@@ -250,6 +254,75 @@
   }
   const fields = [...form.querySelectorAll('.field input, .field textarea, .field select')];
   fields.forEach(field => field.addEventListener('blur', () => validate(field)));
+
+  const estimateInputs = [...document.querySelectorAll('[data-estimate-option]')];
+  const estimateOutput = document.getElementById('estimate-output');
+  const estimateStatus = document.getElementById('estimate-status');
+  const estimateTotal = document.getElementById('estimate-total');
+  const estimateDeposit = document.getElementById('estimate-deposit');
+  const estimateCustom = document.getElementById('estimate-custom');
+  const estimateStart = document.getElementById('estimate-start');
+  const needs = document.getElementById('needs');
+  const budget = document.getElementById('budget');
+  const currency = value => `$${Math.round(value).toLocaleString('en-US')}`;
+  let estimateState = { selected: [], oneTime: 0, monthly: 0, custom: false, summary: '' };
+
+  const updateEstimate = ({ playSound = true } = {}) => {
+    const selected = estimateInputs.filter(input => input.checked);
+    const foundation = selected.find(input => input.name === 'site-foundation');
+    const oneTime = selected.reduce((sum, input) => sum + Number(input.dataset.oneTime || 0), 0);
+    const monthly = selected.reduce((sum, input) => sum + Number(input.dataset.monthly || 0), 0);
+    const custom = selected.some(input => input.dataset.custom === 'true');
+    const depositRate = Number(estimateOutput.dataset.deposit || 0);
+    let summary = '';
+
+    if (!foundation) {
+      estimateStatus.textContent = 'AWAITING SITE FOUNDATION';
+      estimateTotal.textContent = 'Choose a site type';
+      estimateDeposit.textContent = 'Your estimated deposit will appear here.';
+      estimateCustom.hidden = true;
+      estimateStart.disabled = true;
+    } else {
+      const parts = [];
+      if (oneTime) parts.push(currency(oneTime));
+      if (monthly) parts.push(`${currency(monthly)}/mo`);
+      if (custom) parts.push('custom scope');
+      summary = parts.length ? parts.join(' + ') : 'Custom estimate after review';
+      estimateStatus.textContent = 'SIGNAL ACQUIRED // ESTIMATE READY';
+      estimateTotal.textContent = summary;
+      estimateDeposit.textContent = oneTime && depositRate
+        ? `${depositRate}% estimated deposit: ${currency(oneTime * depositRate / 100)}`
+        : 'Deposit confirmed with your final proposal.';
+      estimateCustom.hidden = !custom;
+      estimateStart.disabled = false;
+      estimateOutput.classList.remove('estimate-locked');
+      void estimateOutput.offsetWidth;
+      estimateOutput.classList.add('estimate-locked');
+    }
+
+    estimateState = { selected, oneTime, monthly, custom, summary };
+    if (playSound) playEstimateTick();
+  };
+
+  estimateInputs.forEach(input => input.addEventListener('change', () => updateEstimate()));
+  estimateStart.addEventListener('click', () => {
+    if (!estimateState.selected.length || estimateStart.disabled) return;
+    const previousDetails = needs.value.includes('\n\nProject details:\n')
+      ? needs.value.split('\n\nProject details:\n').slice(1).join('\n\nProject details:\n').trim()
+      : needs.value.trim();
+    const selectedServices = estimateState.selected.map(input => `- ${input.dataset.label}`).join('\n');
+    needs.value = `Selected services:\n${selectedServices}\nStarting estimate: ${estimateState.summary}\n\nProject details:\n${previousDetails}`;
+    if (!budget.value) {
+      if (!estimateState.oneTime) budget.value = 'Not sure yet — tell me what it should cost';
+      else if (estimateState.oneTime <= 500) budget.value = 'Something simple — $100–$500';
+      else if (estimateState.oneTime <= 1000) budget.value = '$500–$1,000';
+      else if (estimateState.oneTime <= 2500) budget.value = '$1,000–$2,500';
+      else budget.value = '$2,500+';
+    }
+    activateView('booking');
+    window.setTimeout(() => needs.focus({ preventScroll: true }), motion.matches ? 0 : 600);
+  });
+  updateEstimate({ playSound: false });
 
   if (document.modelContext?.registerTool) {
     const lifecycle = new AbortController();
